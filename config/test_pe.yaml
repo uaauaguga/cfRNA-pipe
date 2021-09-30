@@ -1,0 +1,57 @@
+# input directory contains raw reads in fastq format
+# fastq file should gzip compressed
+# for paired end reads, named as {sample_id}_1.fastq.gz and {sample_id}_2.fastq.gz
+# for single end reads, named as {sample_id}.fastq.gz
+input_dir: /Share2/home/lulab1/exRNA/published/exoRBase/GSE100063/fastq
+# path of sample id need to processed txt file, a sample id per line
+# these sample should present in input_dir
+sample_ids: test_ids.txt 
+# where to save output
+output_dir: output/test_pe 
+
+# whether perform quality control
+quality_control: true
+
+# adapter to trim
+trimming_threads: 4
+trim_adapter: true 
+adapter_1: auto
+adapter_2: auto
+base_quality: 30
+
+
+mapping_threads: 4
+
+
+# whether remove some unwanted sequence prior to genome mapping 
+remove_unwanted_sequences: true
+# bowtie2 index prefix of sequence you want to remove
+unwanted_sequences: reference/bowtie2-index/unwanted
+
+# whether perform genome mapping
+genome_mapping: true
+# directory for STAR index of human genone
+genome: reference/star-index/hg38
+genome_fasta: reference/fasta/hg38.fa
+
+# whether perform circRNA mapping
+circRNA_mapping: true
+# bowtie2 index of circRNA back-spliced junctions
+circRNA: reference/bowtie2-index/circRNA
+
+
+count_gene: true
+genome_annotation: reference/gtf/gencode.v38.annotation.gtf 
+strandness: forward
+
+# parameter for gene expression counting
+# strandness can be one of forward, reverse or no
+
+metagenomic_classification: true
+kraken_database: reference/kraken2db/minikraken2_v2
+
+
+count_circRNA: true
+count_editing: true
+splicing: true
+APA: true
