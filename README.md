@@ -9,5 +9,5 @@
   - Coverage pattern at 3' UTR: a much more faster implementation for method descript in [dapar](https://github.com/ZhengXia/dapars)
   - Alternative splicing analysis: a wrapper for [rmats](http://rnaseq-mats.sourceforge.net/), provide a interface more friendly to user and parallel computing environment 
   - Analysis of unmapped reads: perform metagenomic classification with [kraken2](https://ccb.jhu.edu/software/kraken2/)
-  - All of functionalities have separated a quantification part (generate matrix for different features) and a statistical analysis part (multiple statistical testing for difference between cases / controls or different treatment, allow adjust for covariates and batch effects)
+  - All of functionalities have separated quantification part (generate matrix for different features) and statistical analysis part (multiple statistical testing for difference between cases / controls or different treatment, allow adjust for covariates and batch effects)
   - Several useful scripts for data visualization
