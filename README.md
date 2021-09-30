@@ -2,7 +2,7 @@
 ### Introduction
 - This repo implements a simple, efficient, and highly modular RNA-seq analysis pipeline
 - It was a general purposed pipeling, although it was originally designed for analyzing cell free RNA in human plasma, in principle it could be migrated to analysis any paired-end long RNA sequencing data
-- It take advantage of workflow management tool [snakemake](https://snakemake.readthedocs.io/en/stable/) to automatically solve for inter dependency between intermediate files, and execute analysis steps in parallel
+- It takes advantage of workflow management tool [snakemake](https://snakemake.readthedocs.io/en/stable/) to automatically solve for inter dependency between intermediate files, and execute analysis steps in parallel
 - We provide the following features
   - Gene and circRNA expression analysis: using the traditional mapping and counting schema
   - Analysis of A to I editing events: count editing events at known RNA editing sites efficiently
