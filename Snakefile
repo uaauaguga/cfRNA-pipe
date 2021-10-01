@@ -236,7 +236,7 @@ rule count_circRNA:
         strandness = config['strandness']
     shell:
         """
-        scripts/count-circRNA.py -b {input.bam} -s {params.strandness} -c {output.count} --stats {output.stats}
+        scripts/count-circrna.py -b {input.bam} -s {params.strandness} -c {output.count} --stats {output.stats}
         """ 
 
 rule summarize_circRNA_count:
@@ -371,7 +371,7 @@ rule APA_analysis:
         for sample_id in {params.sample_ids} ;do
           echo "{params.wigdir}/${{sample_id}}.bigwig" >> {params.outdir}/bigwig.paths.txt
         done
-        scripts/infer-APA.py -bws {params.outdir}/bigwig.paths.txt -b {input.utr} --PDUI {output.PDUI} --njobs {threads}
+        scripts/infer-apa.py -bws {params.outdir}/bigwig.paths.txt -b {input.utr} --PDUI {output.PDUI} --njobs {threads}
         """
 
 
