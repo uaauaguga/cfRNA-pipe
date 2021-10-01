@@ -4,7 +4,9 @@ import argparse
 import pyBigWig
 import pandas as pd
 from tqdm import tqdm
-from multiprocessing import Pooimport loggilogging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(name)s] %(message)s')
+from multiprocessing import Pool
+import logging
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(name)s] %(message)s')
 logger = logging.getLogger("APA Analysis")
 
 def rle(inarray):
@@ -122,7 +124,7 @@ def infer_apa_sites(utr_id,libsizes, min_coverage, min_sample):
         infered_site = int(end) - min_position - 1
     else:
         infered_site = int(start) + min_position
-    return utr_id, PDUI, infered_site
+    return utr_id, PDUI, infered_site, np.round(longer_abundance), np.round(shorter_abundance)
 
     
 def main():
@@ -134,6 +136,8 @@ def main():
     parser.add_argument('--min-sample','-ms',type=int,help="To keep a transcript, More than this number should meet the min coverage",default=3)
     parser.add_argument('--njobs','-j',type=int,help="Number of process to run",default=1)
     parser.add_argument('--PDUI',help="Output PDUI matrix",required=True)
+    parser.add_argument('--long',help="Coverage of long isoform")
+    parser.add_argument('--short',help="Coverage of short isoform")
     args = parser.parse_args()   
 
     global coverages_list
@@ -174,19 +178,32 @@ def main():
         results.append(result)
     logger.info(f"{len(results)} in {len(workers)} UTRs passed the coverage filter .")
     PDUIs = []
+    longer_abundances = []
+    shorter_abundances = []
     utr_ids_passed_filter = []
     infered_sites = []
 
     logger.info("Save PDUIs and infered ployA sites ...")
-    for utr_id, PDUI, infered_site in results:
+    for utr_id, PDUI, infered_site, longer_abundance, shorter_abundance in results:
         PDUIs.append(PDUI.reshape(1,-1))
         infered_sites.append(infered_site)
         utr_ids_passed_filter.append(utr_id)
+        longer_abundances.append(longer_abundance.reshape(1,-1))
+        shorter_abundances.append(shorter_abundance.reshape(1,-1))
     PDUIs = np.concatenate(PDUIs,axis=0)
     PDUIs = np.round(PDUIs,3)
     PDUIs = pd.DataFrame(data=PDUIs,index=utr_ids_passed_filter,columns=sample_ids)    
     PDUIs["infered-polyA-sites"] = np.array(infered_sites).reshape(-1,1)
     PDUIs.to_csv(args.PDUI, sep="\t")         
+
+    longer_abundances = np.concatenate(longer_abundances,axis=0).astype(int)
+    longer_abundances = pd.DataFrame(data=longer_abundances,index=utr_ids_passed_filter,columns=sample_ids)
+    longer_abundances.to_csv(args.long,sep="\t") 
+
+    shorter_abundances = np.concatenate(shorter_abundances,axis=0).astype(int)
+    shorter_abundances = pd.DataFrame(data=shorter_abundances,index=utr_ids_passed_filter,columns=sample_ids)
+    shorter_abundances.to_csv(args.short,sep="\t") 
+   
     logger.info("All done .")
 if __name__ == "__main__":
     main()

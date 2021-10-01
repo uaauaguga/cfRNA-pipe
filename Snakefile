@@ -359,7 +359,9 @@ rule APA_analysis:
         coverages = expand('{outdir}/bigwig/{sample_id}.bigwig', outdir=config["output_dir"], sample_id=sample_ids),
         utr = "reference/bed/gencode.v38.annotation.3putr.subtracted.selected.bed"
     output:
-        PDUI = config["output_dir"] + '/APA/PDUI.txt'
+        PDUI = config["output_dir"] + '/APA/PDUI.txt',
+        long = config["output_dir"] + '/APA/long.txt',
+        short = config["output_dir"] + '/APA/short.txt'
     params:
         sample_ids = " ".join(sample_ids),
         wigdir = config["output_dir"] + '/bigwig',
@@ -371,7 +373,7 @@ rule APA_analysis:
         for sample_id in {params.sample_ids} ;do
           echo "{params.wigdir}/${{sample_id}}.bigwig" >> {params.outdir}/bigwig.paths.txt
         done
-        scripts/infer-apa.py -bws {params.outdir}/bigwig.paths.txt -b {input.utr} --PDUI {output.PDUI} --njobs {threads}
+        scripts/infer-apa.py -bws {params.outdir}/bigwig.paths.txt -b {input.utr} --PDUI {output.PDUI} --njobs {threads} --long {output.long} --short {output.short}
         """
 
 
