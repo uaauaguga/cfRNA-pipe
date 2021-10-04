@@ -106,7 +106,8 @@ results <- lapply(gene.ids,
 names(results) <- gene.ids
 results <- results[unlist(lapply(results,function(x){!is.null(x)}))]
 case.vs.control.table <-  t(as.data.frame(results,check.names=F))
-
+# p.adjust(p, method = p.adjust.methods, n = length(p))
+case.vs.control.table[["p.adjust"]] <-  p.adjust(case.vs.control.table[["Pr(> |z|)"]],method=args$correction)
 message(paste0("[",Sys.time(),"] ", "Save results to ", args$output, " ..."))
 write.table(case.vs.control.table, args$output, sep='\t', quote=FALSE, row.names=TRUE)
 message(paste0("[",Sys.time(),"] ", "All done ."))

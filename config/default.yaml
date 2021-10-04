@@ -1,0 +1,47 @@
+# whether perform quality control
+quality_control: true
+
+# adapter to trim
+trimming_threads: 4
+trim_adapter: true 
+adapter_1: auto
+adapter_2: auto
+base_quality: 30
+
+# whether remove some unwanted sequence prior to genome mapping 
+remove_unwanted_sequences: true
+# bowtie2 index prefix of sequence you want to remove
+unwanted_sequences: reference/bowtie2-index/unwanted
+# how many threads to use when removing unwanted sequences
+uws_mapping_threads: 4
+
+# whether perform genome mapping
+genome_mapping: true
+# directory for STAR index of human genone
+genome: reference/star-index/hg38
+genome_fasta: reference/fasta/hg38.fa
+genome_mapping_threads: 4
+
+# whether perform circRNA mapping
+circrna_mapping: true
+# bowtie2 index of circRNA back-spliced junctions
+circrna: reference/bowtie2-index/circRNA
+circrna_mapping_threads: 4
+
+count_gene: true
+genome_annotation: reference/gtf/gencode.v38.annotation.gtf 
+strandness: no # this parameter is used when counting gene and circRNA expression, strandness can be one of forward, reverse or no
+
+# whether perform metagenomic classification
+metagenomic_classification: true
+kraken_database: reference/kraken2db/minikraken2_v2
+
+# whether count circRNA expression
+count_circrna: true
+# whether count A to I RNA editing 
+count_editing: true
+# whether perform RNA splicing analysis
+splicing: true
+read_length: 150
+# whether analysis coverage pattern at 3' UTR
+APA: true

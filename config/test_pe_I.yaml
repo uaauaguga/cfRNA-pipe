@@ -1,0 +1,8 @@
+input_dir: /BioII/lulab_b/jinyunfan/projects/exSEEK/exSeek-dev/data/tissue/fastq
+sample_ids: test_pe_I_ids.txt
+output_dir: output/test_pe_I
+remove_unwanted_sequences: false
+circrna_mapping: false
+count_circrna: false
+strandness: reverse
+default_config: config/default.yaml

@@ -2,14 +2,28 @@ shell("set -e;")
 
 import os
 import sys
-outputs = {}
+from yaml import load, dump
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
+
 if not os.path.exists(config['sample_ids']):
     print(f"Specified sample id path {config['sample_ids']} does not exists")
+    sys.exit(1)
+if not os.path.exists(config['default_config']):
+    print(f"Specified default config file {config['default_config']} does not exists")
+    sys.exit(2)
 sample_ids = open(config['sample_ids']).read().strip().split('\n')
 
+default_config = load(open(config['default_config']).read(), Loader = Loader)
+for key in default_config:
+    if key not in config:
+        config[key] = default_config[key]
 
 def get_output(config):
     # get output requested in configure file
+    outputs = {}
     if config['quality_control']:
         outputs["qc-raw"] = expand(config['output_dir'] + "/qc-raw/{sample_id}_{mate}_fastqc.html",
                                    sample_id = sample_ids,mate=["1","2"])
@@ -31,24 +45,20 @@ def get_output(config):
     if config['genome_mapping']:
         outputs["genome"] = expand(config['output_dir'] + "/bam/{sample_id}/genome.bam", sample_id = sample_ids)
 
-    if config['circRNA_mapping']:
-        outputs["circRNA"] = expand(config['output_dir'] + "/bam/{sample_id}/circRNA.bam", sample_id = sample_ids)
+    if config['circrna_mapping']:
+        outputs["circrna"] = expand(config['output_dir'] + "/bam/{sample_id}/circrna.bam", sample_id = sample_ids)
 
     if config['metagenomic_classification']:
         outputs["microbe-counts"] = expand(config['output_dir'] + "/microbe/report/{sample_id}.txt", sample_id = sample_ids)
     if config['count_gene']:
-        #outputs["gene-counts"] = expand(config['output_dir'] + "/counts/gene/{sample_id}.txt", sample_id = sample_ids)
         outputs["gene-counts"] = config['output_dir'] + '/counts/matrix/gene.txt'
-    if config['count_circRNA']:
-        #outputs["circRNA-counts"] = expand(config['output_dir'] + "/counts/circRNA/{sample_id}.txt", sample_id = sample_ids)
-        outputs["circRNA-counts"] = config['output_dir'] + '/counts/matrix/circRNA.txt'
+    if config['count_circrna']:
+        outputs["circrna-counts"] = config['output_dir'] + '/counts/matrix/circrna.txt'
     if config["count_editing"]:
-        #outputs["editing"] = expand(config['output_dir'] + "/editing/coverage/{sample_id}.txt", sample_id = sample_ids)
         outputs["editing-edited"] = config['output_dir'] + '/editing/matrix/editing-coverage.txt',
         outputs["editing-ref"] =  config['output_dir'] + '/editing/matrix/reference-coverage.txt'
     if config['splicing']:
         outputs['splicing'] = expand(config['output_dir'] + '/splicing/events/{event}.MATS.JC.txt', event = ["A3SS","A5SS","MXE","RI","SE"])
-    #outputs["coverage"] = expand(config['output_dir'] + '/bigwig/{sample_id}.bigwig',sample_id = sample_ids)
     if config["APA"]:
         outputs["PDUI"] = config["output_dir"] + '/APA/PDUI.txt'
     return list(outputs.values())
@@ -123,7 +133,7 @@ rule remove_unwanted_sequences:
         fastq_1 = '{outdir}/cleaned/{sample_id}_1.fastq.gz',
         fastq_2 = '{outdir}/cleaned/{sample_id}_2.fastq.gz',
         bam = '{outdir}/bam/{sample_id}/unwanted.bam'
-    threads: config["mapping_threads"]
+    threads: config["uws_mapping_threads"]
     params:
         prefix = config['unwanted_sequences']
     log: '{outdir}/log/{sample_id}/remove-unwanted-sequences.log'
@@ -149,8 +159,8 @@ rule qc_cleaned_pe:
 ### Mapping to human genome 
 rule genome_mapping:
     input:
-        fastq_1 = '{outdir}/cleaned/{sample_id}_1.fastq.gz',
-        fastq_2 = '{outdir}/cleaned/{sample_id}_2.fastq.gz'
+        fastq_1 = '{outdir}/cleaned/{sample_id}_1.fastq.gz' if config['remove_unwanted_sequences'] else '{outdir}/trimmed/{sample_id}_1.fastq.gz',
+        fastq_2 = '{outdir}/cleaned/{sample_id}_2.fastq.gz' if config['remove_unwanted_sequences'] else '{outdir}/trimmed/{sample_id}_2.fastq.gz'
     output:
         bam = '{outdir}/bam/{sample_id}/genome.bam',
         fastq_1 = '{outdir}/unmapped/genome/{sample_id}_1.fastq.gz',
@@ -176,23 +186,23 @@ rule genome_mapping:
         mv {wildcards.outdir}/log/{wildcards.sample_id}/genome-mapping/Unmapped.out.mate2.gz {output.fastq_2}
         """
 
-### Mapping to circRNA back-spliced junctions
+### Mapping to circrna back-spliced junctions
 
-rule circRNA_mapping:
+rule circrna_mapping:
     input:
         fastq_1 = '{outdir}/unmapped/genome/{sample_id}_1.fastq.gz',
         fastq_2 = '{outdir}/unmapped/genome/{sample_id}_2.fastq.gz',
     output:
-        fastq_1 = '{outdir}/unmapped/circRNA/{sample_id}_1.fastq.gz',
-        fastq_2 = '{outdir}/unmapped/circRNA/{sample_id}_2.fastq.gz',
-        bam = '{outdir}/bam/{sample_id}/circRNA.bam'
+        fastq_1 = '{outdir}/unmapped/circrna/{sample_id}_1.fastq.gz',
+        fastq_2 = '{outdir}/unmapped/circrna/{sample_id}_2.fastq.gz',
+        bam = '{outdir}/bam/{sample_id}/circrna.bam'
     params:
-        prefix = config['circRNA']
-    threads: 4
-    log: '{outdir}/log/{sample_id}/map-circRNA.log'
+        prefix = config['circrna']
+    threads: config['circrna_mapping_threads']
+    log: '{outdir}/log/{sample_id}/map-circrna.log'
     shell:
         """
-        bowtie2 --no-unal -p {threads} -1 {input.fastq_1} -2 {input.fastq_2}  --un-conc-gz {wildcards.outdir}/unmapped/circRNA/{wildcards.sample_id}_%.fastq.gz --no-discordant --end-to-end -x {params.prefix} 2> {log} | samtools view -b > {output.bam}
+        bowtie2 --no-unal -p {threads} -1 {input.fastq_1} -2 {input.fastq_2}  --un-conc-gz {wildcards.outdir}/unmapped/circrna/{wildcards.sample_id}_%.fastq.gz --no-discordant --end-to-end -x {params.prefix} 2> {log} | samtools view -b > {output.bam}
         """
 
 ### Count gene expression with featurecount
@@ -226,12 +236,12 @@ rule summarize_gene_count:
         """
 
 ### Count reads spanning back-spliced junctions
-rule count_circRNA:
+rule count_circrna:
     input:
-        bam = '{outdir}/bam/{sample_id}/circRNA.bam',
+        bam = '{outdir}/bam/{sample_id}/circrna.bam',
     output:
-        count = '{outdir}/counts/circRNA/{sample_id}.txt',
-        stats = '{outdir}/counts/circRNA/{sample_id}.stats'
+        count = '{outdir}/counts/circrna/{sample_id}.txt',
+        stats = '{outdir}/counts/circrna/{sample_id}.stats'
     params:
         strandness = config['strandness']
     shell:
@@ -239,14 +249,14 @@ rule count_circRNA:
         scripts/count-circrna.py -b {input.bam} -s {params.strandness} -c {output.count} --stats {output.stats}
         """ 
 
-rule summarize_circRNA_count:
+rule summarize_circrna_count:
     input:
-        counts = expand('{outdir}/counts/circRNA/{sample_id}.txt',outdir=config["output_dir"],sample_id=sample_ids),
+        counts = expand('{outdir}/counts/circrna/{sample_id}.txt',outdir=config["output_dir"],sample_id=sample_ids),
         sample_ids = config["sample_ids"] 
     output:
-        matrix = '{outdir}/counts/matrix/circRNA.txt'
+        matrix = '{outdir}/counts/matrix/circrna.txt'
     params:
-        indir = '{outdir}/counts/circRNA'
+        indir = '{outdir}/counts/circrna'
     shell:
         """
         scripts/summarize-table.py -i {params.indir} -o {output.matrix} -s {input.sample_ids} --value-field 1 --row-field 0 --row-name circrna_id --first-line 1 --fillna 0 --integer
@@ -328,7 +338,7 @@ rule splicing_analysis:
     output:
         count = '{outdir}/splicing/counts/{sample_id}.rmats'
     params:
-        read_length = 150
+        read_length = config["read_length"]
     shell:
         """
         echo {input.bam} > {wildcards.outdir}/splicing/counts/{wildcards.sample_id}.path.txt 
@@ -379,8 +389,8 @@ rule APA_analysis:
 
 rule metagenomic_classification:
     input:
-        fastq_1 = '{outdir}/unmapped/circRNA/{sample_id}_1.fastq.gz',
-        fastq_2 = '{outdir}/unmapped/circRNA/{sample_id}_2.fastq.gz',
+        fastq_1 = '{outdir}/unmapped/circrna/{sample_id}_1.fastq.gz' if config['circrna_mapping'] else '{outdir}/unmapped/genome/{sample_id}_1.fastq.gz',
+        fastq_2 = '{outdir}/unmapped/circrna/{sample_id}_2.fastq.gz' if config['circrna_mapping'] else '{outdir}/unmapped/genome/{sample_id}_2.fastq.gz',
         database = config['kraken_database'] 
     output:
         report = '{outdir}/microbe/report/{sample_id}.txt',

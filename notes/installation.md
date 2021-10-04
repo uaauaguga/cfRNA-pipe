@@ -10,6 +10,10 @@
 - rmats
 - kraken2
 - snakemake: for pipeline management
+- bedGraphToBigWig
+  ```bash
+  conda install -c bioconda ucsc-bedgraphtobigwig
+   ```
 
 - python packages
   - numpy
