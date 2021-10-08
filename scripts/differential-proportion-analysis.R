@@ -22,6 +22,8 @@ parser$add_argument('--test', type='character', default="binomial",
 parser$add_argument('--correction', type='character', default="BH",
     choices=c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY"),
     help='method for mutiple test correction')
+parser$add_argument('--cores', type='integer', default=1,
+    help='number of cores to used')
 parser$add_argument('--output', type='character', required=TRUE,
     help='output differential expression table')
 args <- parser$parse_args()
@@ -57,25 +59,28 @@ count.matrix.two <- count.matrix.two[keep,]
 rm(count.matrix.total)
 rm(y)
 
-message(paste0("[",Sys.time(),"] ", "Test for difference ..."))
 
-proportion.test <- function(counts.one,counts.two,metadata,test.method,regressors,label_field,case_label){
-  metadata[["counts.one"]] <- as.numeric(counts.one[1,])
-  metadata[["counts.two"]] <- as.numeric(counts.two[1,])
+proportion.test <- function(x){
+  counts.one <- x[[1]]
+  counts.two <- x[[2]]
+  if(x[[3]]%%1000==0){message(paste0("[",Sys.time(),"] ", x[[3]], " genes processed."))}
+  counts.data <- metadata
+  counts.data[["counts.one"]] <- counts.one
+  counts.data[["counts.two"]] <- counts.two
   formula <- as.formula(paste("cbind(counts.one,counts.two)~", paste(regressors, collapse="+")))
-  coefficient <- paste0(label_field,case_label)
-  if(test.method %in% c('binomial', 'quasibinomial')){
-   res <- glm(formula, family=test.method, data=metadata)  
+   coefficient <- paste0(args$label_field,args$case_label)
+  if(args$test %in% c('binomial', 'quasibinomial')){
+   res <- glm(formula, family=args$test, data=counts.data)  
    res.sum <- summary(res)
    if(coefficient %in% rownames(res.sum[["coefficients"]])){
      return(res.sum[["coefficients"]][coefficient,])
    }else{
     return(NULL)
    }
-  }else if(test.method=="betabinomial"){
+  }else if(args$test=="betabinomial"){
    #random.formula <- as.formula(paste("~",paste(regressors, collapse="+")))
    random.formula <- as.formula("~1")
-   state <-  try(capture<-capture.output(res<-betabin(formula,random=random.formula, data=metadata)), silent=TRUE)
+   state <-  try(capture<-capture.output(res<-betabin(formula,random=random.formula, data=counts.data)), silent=TRUE)
    if("try-error" %in% class(state)){return(NULL);}
    res.sum <- summary(res)
    if(coefficient %in% rownames(res.sum@Coef)){
@@ -94,20 +99,29 @@ if("covariate_fields" %in% names(args)){
     regressors <- c(regressors,covariate.fields)
 }
 
+
 gene.ids <- rownames(count.matrix.one)
-results <- lapply(gene.ids,
-                  function(gene.id){
-                           proportion.test(count.matrix.one[gene.id,],
-                                           count.matrix.two[gene.id,],
-                                           metadata,
-                                           args$test,
-                                           regressors,
-                                           args$label_field,args$case_label)})
+
+message(paste0("[",Sys.time(),"] ", "Prepare data ..."))
+counts.list <- list()
+
+count.matrix.one <- as.matrix(count.matrix.one)
+count.matrix.two <- as.matrix(count.matrix.two)
+gene.ids <- rownames(count.matrix.one)
+for(i in 1:nrow(count.matrix.one)){
+  if(i%%10000==0){message(paste0("[",Sys.time(),"] ", i, " genes loaded."))}
+  counts.list[[i]] <- list(as.numeric(count.matrix.one[i,]),as.numeric(count.matrix.two[i,]),i)
+}
+names(counts.list) <- gene.ids
+
+
+library(parallel)
+message(paste0("[",Sys.time(),"] ", "Use ",args$cores, " cores for differential testing ..."))
+results <- mclapply(counts.list,proportion.test,mc.cores=args$cores)
 names(results) <- gene.ids
 results <- results[unlist(lapply(results,function(x){!is.null(x)}))]
 case.vs.control.table <-  as.data.frame(t(as.data.frame(results,check.names=F)))
-# p.adjust(p, method = p.adjust.methods, n = length(p))
-colnames(case.vs.control.table) <- c("log.odds","std.err","z.score","p.value")
+colnames(case.vs.control.table) <- c("log.odds.ratio","std.err","z.score","p.value")
 p.adjusted <- p.adjust(case.vs.control.table[,"p.value"],method=args$correction)
 names(p.adjusted) <- NULL
 case.vs.control.table$p.adjusted <- p.adjusted
