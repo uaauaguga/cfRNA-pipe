@@ -49,7 +49,7 @@ metadata[[args$label_field]] <- relevel(metadata[[args$label_field]],ref=args$co
 message(paste0("[",Sys.time(),"] ", "Filter features by total coverage ..."))
 count.matrix.total <- count.matrix.one + count.matrix.two
 y <- edgeR::DGEList(counts=count.matrix.total)
-keep <- edgeR::filterByExpr(y, group = metadata[[args$label_field]])
+keep <- edgeR::filterByExpr(y, group = metadata[[args$label_field]], min.count = 20)
 message(paste0("[",Sys.time(),"] ", "Among ",nrow(count.matrix.total)," features, ",sum(keep)," passed the filtered"))
 
 count.matrix.one <- count.matrix.one[keep,]
@@ -74,7 +74,7 @@ proportion.test <- function(counts.one,counts.two,metadata,test.method,regressor
    }
   }else if(test.method=="betabinomial"){
    #random.formula <- as.formula(paste("~",paste(regressors, collapse="+")))
-   random.formula <- as.formula("~ 1")
+   random.formula <- as.formula("~1")
    state <-  try(capture<-capture.output(res<-betabin(formula,random=random.formula, data=metadata)), silent=TRUE)
    if("try-error" %in% class(state)){return(NULL);}
    res.sum <- summary(res)
@@ -89,7 +89,7 @@ proportion.test <- function(counts.one,counts.two,metadata,test.method,regressor
 }
 
 regressors <- c(args$label_field)
-if("covariate.fields" %in% names(args)){
+if("covariate_fields" %in% names(args)){
     covariate.fields <- unlist(strsplit(args$covariate_fields,","))
     regressors <- c(regressors,covariate.fields)
 }
@@ -105,9 +105,12 @@ results <- lapply(gene.ids,
                                            args$label_field,args$case_label)})
 names(results) <- gene.ids
 results <- results[unlist(lapply(results,function(x){!is.null(x)}))]
-case.vs.control.table <-  t(as.data.frame(results,check.names=F))
+case.vs.control.table <-  as.data.frame(t(as.data.frame(results,check.names=F)))
 # p.adjust(p, method = p.adjust.methods, n = length(p))
-case.vs.control.table[["p.adjust"]] <-  p.adjust(case.vs.control.table[["Pr(> |z|)"]],method=args$correction)
+colnames(case.vs.control.table) <- c("log.odds","std.err","z.score","p.value")
+p.adjusted <- p.adjust(case.vs.control.table[,"p.value"],method=args$correction)
+names(p.adjusted) <- NULL
+case.vs.control.table$p.adjusted <- p.adjusted
 message(paste0("[",Sys.time(),"] ", "Save results to ", args$output, " ..."))
 write.table(case.vs.control.table, args$output, sep='\t', quote=FALSE, row.names=TRUE)
 message(paste0("[",Sys.time(),"] ", "All done ."))
