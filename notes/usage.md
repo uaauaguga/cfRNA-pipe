@@ -36,13 +36,13 @@ snakemake --jobs 100 --configfile your.configuration.yaml -np
 
   - `scripts/differential-expression-analysis.R` is used for modeling counts data
 
-  ```bash
+```bash
   scripts/differential-expression-analysis.R --matrix count.matrix.txt --label-field label --covariate-fields batch --normalize TMM --output diff.table.txt --metadata metadata.txt --case-label T --control-label N --test edger-glmlrt
-  ```
+```
 
   - `scripts/differential-proportion-analysis.R` is used for modeling relative abundance of two counts
 
-  ```bash
+```bash
   scripts/differential-proportion-analysis.R --matrix-1 counts_1.txt --matrix-2 counts_2.txt --metadata metadata.txt --label-field label --covariate-fields batch --case-label T --control-label N --output diff.table.txt --cores 8
-  ```
+```
 
