@@ -11,9 +11,14 @@ except ImportError:
 if not os.path.exists(config['sample_ids']):
     print(f"Specified sample id path {config['sample_ids']} does not exists")
     sys.exit(1)
+
+if 'default_config' not in config:
+    config['default_config'] = 'config/default.yaml'
+
 if not os.path.exists(config['default_config']):
     print(f"Specified default config file {config['default_config']} does not exists")
     sys.exit(2)
+
 sample_ids = open(config['sample_ids']).read().strip().split('\n')
 
 default_config = load(open(config['default_config']).read(), Loader = Loader)

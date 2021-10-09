@@ -20,27 +20,36 @@
   - See comments in `config/default.yaml` for detail
 
 ```bash
-snakemake --jobs 100 --configfile your.configuration.yaml
+snakemake --jobs 8 --configfile config/test_pe.yaml
 ```
 
 - If you want to known which steps will be run instead of actually running these steps, you can use the "dry run" option of snakemake
 
 ```bash
 # -np is short for --dry-run (-n) and --printshellcmds (-p) 
-snakemake --jobs 100 --configfile your.configuration.yaml -np
+snakemake --jobs 8 --configfile config/test_pe.yaml -np
 ```
+
+- If you use a lsf cluster for calculation
+
+```bash
+# use bsub to submit job 
+# --latency-wait 100: allow some system delay
+snakemake --jobs 32 --configfile config/test_pe.yaml --cluster "bsub -R span[hosts=1] -q queue_name -n {threads}" --latency-wait 100 
+```
+
 
 ### Statistical analysis part
 
 - This part provides two scripts for differential analysis
 
-  - `scripts/differential-expression-analysis.R` is used for modeling counts data
+- `scripts/differential-expression-analysis.R` is used for modeling counts data
 
 ```bash
   scripts/differential-expression-analysis.R --matrix count.matrix.txt --label-field label --covariate-fields batch --normalize TMM --output diff.table.txt --metadata metadata.txt --case-label T --control-label N --test edger-glmlrt
 ```
 
-  - `scripts/differential-proportion-analysis.R` is used for modeling relative abundance of two counts
+- `scripts/differential-proportion-analysis.R` is used for modeling relative abundance of two counts
 
 ```bash
   scripts/differential-proportion-analysis.R --matrix-1 counts_1.txt --matrix-2 counts_2.txt --metadata metadata.txt --label-field label --covariate-fields batch --case-label T --control-label N --output diff.table.txt --cores 8
