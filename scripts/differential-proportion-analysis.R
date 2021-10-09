@@ -22,6 +22,8 @@ parser$add_argument('--test', type='character', default="binomial",
 parser$add_argument('--correction', type='character', default="BH",
     choices=c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY"),
     help='method for mutiple test correction')
+parser$add_argument('--pseudocount', type='integer', default=1,
+    help='pseudocount to add')
 parser$add_argument('--cores', type='integer', default=1,
     help='number of cores to used')
 parser$add_argument('--output', type='character', required=TRUE,
@@ -43,8 +45,8 @@ metadata <- read.table(args$metadata, header = TRUE, row.names=1, check.names=TR
 sample.ids <- intersect(rownames(metadata),colnames(count.matrix.one))
 message(paste0("[",Sys.time(),"] ", length(sample.ids), " samples appear in both matrix ."))
 
-count.matrix.one <- count.matrix.one[,sample.ids]
-count.matrix.two <- count.matrix.two[,sample.ids]
+count.matrix.one <- count.matrix.one[,sample.ids] + args$pseudocount
+count.matrix.two <- count.matrix.two[,sample.ids] + args$pseudocount
 metadata <- metadata[sample.ids,,drop=FALSE]
 metadata[[args$label_field]] <- relevel(metadata[[args$label_field]],ref=args$control_label) 
 
@@ -78,10 +80,10 @@ proportion.test <- function(x){
     return(NULL)
    }
   }else if(args$test=="betabinomial"){
-   #random.formula <- as.formula(paste("~",paste(regressors, collapse="+")))
-   random.formula <- as.formula("~1")
+   random.formula <- as.formula(paste("~",paste(regressors, collapse="+")))
+   #random.formula <- as.formula("~1")
    state <-  try(capture<-capture.output(res<-betabin(formula,random=random.formula, data=counts.data)), silent=TRUE)
-   if("try-error" %in% class(state)){return(NULL);}
+   if("try-error" %in% class(state)){print(capture);return(NULL);}
    res.sum <- summary(res)
    if(coefficient %in% rownames(res.sum@Coef)){
      res.coef <- t(res.sum@Coef[coefficient,])
@@ -118,8 +120,10 @@ names(counts.list) <- gene.ids
 library(parallel)
 message(paste0("[",Sys.time(),"] ", "Use ",args$cores, " cores for differential testing ..."))
 results <- mclapply(counts.list,proportion.test,mc.cores=args$cores)
+# results <- lapply(counts.list,proportion.test)
+# for(i in 1:length(results)){if("try-error" %in% class(results[[i]])){print(gene.ids[i]);print(results[[i]])}}
 names(results) <- gene.ids
-results <- results[unlist(lapply(results,function(x){!is.null(x)}))]
+results <- results[unlist(lapply(results,function(x){(!is.null(x))&&(!"try-error" %in% class(x))}))]
 case.vs.control.table <-  as.data.frame(t(as.data.frame(results,check.names=F)))
 colnames(case.vs.control.table) <- c("log.odds.ratio","std.err","z.score","p.value")
 p.adjusted <- p.adjust(case.vs.control.table[,"p.value"],method=args$correction)
