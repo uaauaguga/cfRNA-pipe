@@ -16,7 +16,7 @@ parser$add_argument('--case-label', type='character', required=TRUE,
     help = 'label of experiment group / case group.')
 parser$add_argument('--control-label', type='character', required=TRUE,
     help = 'label of control group.')
-parser$add_argument('--test', type='character', default="binomial",
+parser$add_argument('--test', type='character', default="betabinomial",
     choices=c('binomial', 'quasibinomial','betabinomial'),
     help='differential expression method to use')
 parser$add_argument('--correction', type='character', default="BH",
