@@ -41,7 +41,7 @@ sample.ids <- intersect(rownames(metadata),colnames(count.matrix))
 message(paste0("[",Sys.time(),"] ", length(sample.ids), " samples appear in both matrix ."))
 
 count.matrix <- count.matrix[,sample.ids]
-metadata <- metadata[sample.ids,]
+metadata <- metadata[sample.ids,,drop=FALSE]
 
 message(paste0("[",Sys.time(),"] ", "Prepare design matrix ..."))
 metadata[[args$label_field]] <- relevel(metadata[[args$label_field]],ref=args$control_label) 
