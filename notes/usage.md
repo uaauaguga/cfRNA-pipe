@@ -1,5 +1,11 @@
 ## Usage
 
+- Enter the conda environment `rna-pipe-env` before running the pipeline
+
+```bash
+conda activate rna-pipe-env
+```
+
 ### Quantification part
 
 - This part takes paired end fastq files as input, and produce specified in configure file
