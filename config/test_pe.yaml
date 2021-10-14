@@ -4,4 +4,5 @@ output_dir: output/test_pe
 remove_unwanted_sequences: false
 circrna_mapping: false
 count_circrna: false
+
 strandness: reverse

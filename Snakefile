@@ -170,7 +170,7 @@ rule genome_mapping:
         bam = '{outdir}/bam/{sample_id}/genome.bam',
         fastq_1 = '{outdir}/unmapped/genome/{sample_id}_1.fastq.gz',
         fastq_2 = '{outdir}/unmapped/genome/{sample_id}_2.fastq.gz'
-    threads: 4
+    threads: 6
     params:
         genome = config['genome']
     log: '{outdir}/log/{sample_id}/genome-mapping/Log.out'
@@ -364,7 +364,7 @@ rule summarize_splicing:
         outdir = config["output_dir"]
     shell:
         """
-        cat {params.outdir}/splicing/counts/*path.txt | awk 'BEGIN{{ORS=",";}}{{print}}' | sed 's/,$/\n/' > {params.outdir}/splicing/bam.path.txt
+        cat {params.outdir}/splicing/counts/*path.txt | awk 'BEGIN{{ORS=",";}}{{print}}'  > {params.outdir}/splicing/bam.path.txt
         rmats.py --b1 {params.outdir}/splicing/bam.path.txt --gtf {input.gtf} -t paired --readLength {params.read_length} --nthread 1 --tmp {params.outdir}/splicing/counts --od {params.outdir}/splicing/events  --task post --statoff 
         """
 

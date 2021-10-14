@@ -80,8 +80,8 @@ proportion.test <- function(x){
     return(NULL)
    }
   }else if(args$test=="betabinomial"){
-   random.formula <- as.formula(paste("~",paste(regressors, collapse="+")))
-   #random.formula <- as.formula("~1")
+   #random.formula <- as.formula(paste("~",paste(regressors, collapse="+")))
+   random.formula <- as.formula("~1")
    state <-  try(capture<-capture.output(res<-betabin(formula,random=random.formula, data=counts.data)), silent=TRUE)
    if("try-error" %in% class(state)){print(capture);return(NULL);}
    res.sum <- summary(res)
@@ -96,7 +96,7 @@ proportion.test <- function(x){
 }
 
 regressors <- c(args$label_field)
-if("covariate_fields" %in% names(args)){
+if("covariate_fields" %in% names(args) && !is.null(args[["covariate_fields"]])){
     covariate.fields <- unlist(strsplit(args$covariate_fields,","))
     regressors <- c(regressors,covariate.fields)
 }

@@ -1,4 +1,5 @@
 *.txt
+*.R
 junk/
 reference/
 output/
