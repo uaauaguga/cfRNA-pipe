@@ -61,3 +61,31 @@ snakemake --jobs 32 --configfile config/test_pe.yaml --cluster "bsub -R span[hos
   scripts/differential-proportion-analysis.R --matrix-1 counts_1.txt --matrix-2 counts_2.txt --metadata metadata.txt --label-field label --covariate-fields batch --case-label T --control-label N --output diff.table.txt --cores 8
 ```
 
+
+### Visualization part
+
+- PCA & MDS plot
+
+- Volcano plot
+
+- For visualization of RNA editing and splicing events, you shall load bam files (sorted by genome coordinate, present in `{output_dir}/{sample_id}/genome.sorted.bam` ) with IGV. 
+
+- [rmats2sashimiplot](https://github.com/Xinglab/rmats2sashimiplot) is also a great tool for visualze alternative splicing events. It can be simply installed by typing `conda install -c bioconda rmats2sashimiplot`. See their documentation at <https://github.com/Xinglab/rmats2sashimiplot> for detailed usage.
+
+- For visualization coverage pattern at 3' UTR, you can simply load the `bigwig` file (present in `{output_dir}/bigwig`) with [IGV](https://software.broadinstitute.org/software/igv/)
+
+
+- We recommand [Krona](https://github.com/marbl/Krona) for visualze taxonomy composition of reads unmapped to human genome. 
+  - Installation and preparing taxo database
+
+```bash
+conda install -c bioconda krona # install krona into current conda environment
+ktUpdateTaxonomy.sh # prepare taxonomy database. this script is shipped with krona
+```
+
+  - Import kraken2 report to (files in `{output_dir}/microbe/report` ) Krona's html. You can open this file with any web browser for further exploration 
+
+```bash
+ktImportTaxonomy -m 3 -t 5 {output_dir}/microbe/report/{sample_id}.txt -o krona.html
+```
+

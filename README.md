@@ -21,5 +21,6 @@
     - Allow adjust for covariates and batch effects. 
 
   - Several useful scripts for data visualization
-
+    - Plots for sample similarity, PCA and MDS
+    - Volcano plot for visualize differential features
 
