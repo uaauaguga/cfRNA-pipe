@@ -15,7 +15,7 @@ conda activate rna-pipe-env
 - A configure file fully control the behavior of this workflow
 
 - In the configure file, the following parameter is required
-  - `input_dir`: directory contains raw paired end fastq files. These files should be gzip compressed, and named as {sample_id}_1.fastq.gz and {sample_id}_2.fastq.gz
+  - `input_dir`: directory contains raw paired end fastq files. These files should be gzip compressed, and named as `{sample_id}_1.fastq.gz` and `{sample_id}_2.fastq.gz`
   - `sample_ids`: path of a text file contains ids of samples to run. One sample id per line
   - `output_dir`: directory to save outputs
 
