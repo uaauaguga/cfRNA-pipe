@@ -77,7 +77,6 @@ snakemake --jobs 32 --configfile config/test_pe.yaml --cluster "bsub -R span[hos
 
 - We recommand [Krona](https://github.com/marbl/Krona) for visualze taxonomy composition of reads unmapped to human genome. 
   - Installation and preparing taxo database
-
 ```bash
 conda install -c bioconda krona # install krona into current conda environment
 ktUpdateTaxonomy.sh # prepare taxonomy database. this script is shipped with krona
@@ -88,4 +87,13 @@ ktUpdateTaxonomy.sh # prepare taxonomy database. this script is shipped with kro
 ```bash
 ktImportTaxonomy -m 3 -t 5 {output_dir}/microbe/report/{sample_id}.txt -o krona.html
 ```
+
+- Visualize the taxonomy composition is useful under the following circumstances
+
+  - You have a large unmapped rate, but don't know what's going wrong. Many potential reasons could lead to such problems, and a krona plot is helpful for debugging. 
+    - For low-input RNA sequencing, (cell free RNA for example), microbial contaminations are prevalent. If in krona plot, the majority of unmapped reads were assigned to a few microbial species, this suggests a considerable fraction in your RNA-seq library were derived from microbe contamination.
+    - If the majority of unmapped reads were assigned to human genome, the large unmapped rate may be attributed to poor data quality (kraken2 is less stringent than STAR aligner), failed adapter trimming, or out-of-paired fastq file (reads id in {sample_id}_1.fastq.gz and {sample_id}_2.fastq.gz should have the same order), etc.
+
+  - Sometimes you may interest in microbial reads in your sequencing data. For example, several studies suggest some tumors contain clinically relevant living bacteria.
+
 
