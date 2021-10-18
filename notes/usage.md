@@ -8,42 +8,40 @@ conda activate rna-pipe-env
 
 ### Quantification part
 
-- This part takes paired end fastq files as input, and produce specified in configure file
+- This part takes paired end fastq files as input, and produce outputs specified in the configure file
 
 - The workflow is wrapped in a single Snakefile 
 
 - A configure file fully control the behavior of this workflow
 
-- In the configure file, the following parameter is required
+- In the configure file, the following parameters are required
   - `input_dir`: directory contains raw paired end fastq files. These files should be gzip compressed, and named as `{sample_id}_1.fastq.gz` and `{sample_id}_2.fastq.gz`
   - `sample_ids`: path of a text file contains ids of samples to run. One sample id per line
   - `output_dir`: directory to save outputs
 
 - Other available parameters have a defult setting in `config/default.yaml`
-  - The default settings will be overwriten if the parameters are setted in configure file
-  - Some parameters control which steps to run
-  - Some parameters are controls behaviors of programs to run
+  - The default settings will be overwriten if the parameters are set in configure file
+  - Some parameters control which steps to run, some control behaviors of the programs to run
   - See comments in `config/default.yaml` for detail
 
 ```bash
 snakemake --jobs 8 --configfile config/test_pe.yaml
 ```
 
-- If you want to known which steps will be run instead of actually running these steps, you can use the "dry run" option of snakemake
+- If you want to know which steps will be run, instead of actually running these steps, you can use the "dry run" option of snakemake
 
 ```bash
 # -np is short for --dry-run (-n) and --printshellcmds (-p) 
 snakemake --jobs 8 --configfile config/test_pe.yaml -np
 ```
 
-- If you use a lsf cluster for calculation
+- If you use a LSF cluster for parallel computation
 
 ```bash
 # use bsub to submit job 
-# --latency-wait 100: allow some system delay
+# --latency-wait 100: allow 100s of file system delay
 snakemake --jobs 32 --configfile config/test_pe.yaml --cluster "bsub -R span[hosts=1] -q queue_name -n {threads}" --latency-wait 100 
 ```
-
 
 ### Statistical analysis part
 
@@ -52,13 +50,13 @@ snakemake --jobs 32 --configfile config/test_pe.yaml --cluster "bsub -R span[hos
 - `scripts/differential-expression-analysis.R` is used for modeling counts data
 
 ```bash
-  scripts/differential-expression-analysis.R --matrix count.matrix.txt --label-field label --covariate-fields batch --normalize TMM --output diff.table.txt --metadata metadata.txt --case-label T --control-label N --test edger-glmlrt
+  scripts/differential-expression-analysis.R --matrix count.matrix.txt --label-field label [--covariate-fields batch] --normalize TMM --output diff.table.txt --metadata metadata.txt --case-label T --control-label N --test edger-glmlrt
 ```
 
 - `scripts/differential-proportion-analysis.R` is used for modeling relative abundance of two counts
 
 ```bash
-  scripts/differential-proportion-analysis.R --matrix-1 counts_1.txt --matrix-2 counts_2.txt --metadata metadata.txt --label-field label --covariate-fields batch --case-label T --control-label N --output diff.table.txt --cores 8
+  scripts/differential-proportion-analysis.R --matrix-1 counts_1.txt --matrix-2 counts_2.txt --metadata metadata.txt --label-field label [--covariate-fields batch] --case-label T --control-label N --output diff.table.txt --cores 8
 ```
 
 
@@ -91,8 +89,8 @@ ktImportTaxonomy -m 3 -t 5 {output_dir}/microbe/report/{sample_id}.txt -o krona.
 - Visualize the taxonomy composition is useful under the following circumstances
 
   - You have a large unmapped rate, but don't know what's going wrong. Many potential reasons could lead to such problems, and a krona plot is helpful for debugging. 
-    - For low-input RNA sequencing, (cell free RNA for example), microbial contaminations are prevalent. If in krona plot, the majority of unmapped reads were assigned to a few microbial species, this suggests a considerable fraction in your RNA-seq library were derived from microbe contamination.
-    - If the majority of unmapped reads were assigned to human genome, the large unmapped rate may be attributed to poor data quality (kraken2 is less stringent than STAR aligner), failed adapter trimming, or out-of-paired fastq file (reads id in `{sample_id}_1.fastq.gz` and `{sample_id}_2.fastq.gz` should have the same order), etc.
+    - For low-input RNA sequencing, (cell free RNA for example), microbial contaminations are prevalent. If in krona plot, the majority of unmapped reads were assigned to a few microbial species, this suggests a considerable fraction of in your RNA-seq reads were derived from microbe contaminations.
+    - If the majority of unmapped reads were assigned to human genome, the large unmapped rate may be attributed to poor data quality (kraken2 is less stringent than STAR aligner), failed adapter trimming, or out-of-paired fastq file (reads id in `{sample_id}_1.fastq.gz` and `{sample_id}_2.fastq.gz` should have same order), etc.
 
   - Sometimes you may interest in microbial reads in your sequencing data. For example, several studies suggest some tumors contain clinically relevant living bacteria.
 
