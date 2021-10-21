@@ -1,5 +1,8 @@
 ## RNA-pipe
 
+- **Under development, not well tested**
+
+
 ### Introduction
 - This repo implements a simple, efficient, and highly modular RNA-seq analysis pipeline
 - It was a general purposed pipeling. It was originally designed for analyzing cell free RNA in human plasma, but in principle it could be applied to analysis any paired-end long RNA sequencing data
