@@ -5,7 +5,7 @@
 
 ### Introduction
 - This repo implements a simple, efficient, and highly modular RNA-seq analysis pipeline
-- It was a general purposed pipeling. It was originally designed for analyzing cell free RNA in human plasma, but in principle it could be applied to analysis any paired-end long RNA sequencing data
+- It was a general purposed pipeline. It was originally designed for analyzing cell free RNA in human plasma, but in principle it could be applied to analysis any paired-end long RNA-seq data
 - It takes advantage of workflow management tool [snakemake](https://snakemake.readthedocs.io/en/stable/) to automatically solve for inter-dependency between intermediate files, and execute analysis steps in parallel
 
 - We provide the following features
@@ -26,4 +26,3 @@
   - Several useful scripts for data visualization
     - Plots for sample similarity, PCA and MDS
     - Volcano plot for visualize differential features
-
