@@ -57,8 +57,10 @@ y <- edgeR::DGEList(counts=count.matrix)
 keep <- edgeR::filterByExpr(y,group = metadata[[args$label_field]])
 y <- y[keep, , keep.lib.sizes=FALSE]
 message(paste0("[",Sys.time(),"] ", "Calculate size factor with ",args$normalize," ..."))
-y <- edgeR::calcNormFactors(y, method=args$normalize)
 
+if(args$normalize!="CPM"){
+  y <- edgeR::calcNormFactors(y, method=args$normalize)
+}
 
 coef <- paste0(args$label_field,args$case_label)
 
