@@ -1,6 +1,6 @@
 ## RNA-pipe
 
-- **Under development, not well tested**
+- **Not well tested, be cautious **
 
 
 ### Introduction
