@@ -22,12 +22,6 @@ bedtools subtract -a reference/bed/gencode.v38.annotation.3putr.bed -b reference
 run/select-3putr.py -i reference/bed/gencode.v38.annotation.3putr.subtracted.bed -o reference/bed/gencode.v38.annotation.3putr.subtracted.selected.bed
 ```
 
-- Prepare 3p UTR annotation
-```bash
-bedtools sort -faidx reference/fasta/hg38.fa.fai -i test.3putr.subtracted.selected.bed > test.3putr.subtracted.selected.sorted.bed
-```
-
-
 - Build STAR index
 
 ```bash
