@@ -1,4 +1,3 @@
-test
 ## RNA-pipe
 
 - **Not well tested, be cautious **
