@@ -7,6 +7,7 @@
 wget -P reference/source http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/GRCh38.primary_assembly.genome.fa.gz
 zcat reference/source/GRCh38.primary_assembly.genome.fa.gz >  reference/fasta/hg38.fa
 samtools faidx reference/fasta/hg38.fa
+cut -f 1,2 reference/fasta/hg38.fa.fai > reference/fasta/chrom.size
 ```
 
 - gencode annotations
