@@ -48,6 +48,7 @@ def load_coverage(bigwig_path):
         # use run length encoding to reduce memory overhead
         coverages[utr_id] = rle(depths)
     libsize = bw.header()['sumData']
+    logger.info(f"{bigwig_path} loaded .")
     return coverages, libsize
         
 
@@ -162,7 +163,6 @@ def main():
         coverages, libsize = worker.get()
         coverages_list.append(coverages)
         libsizes.append(libsize)
-        logger.info(f"{path} loaded .")
 
     # Analysis for different transcripts are independent
     logger.info(f"Infer APA sites for 3' UTRs with {args.njobs} processes...")
