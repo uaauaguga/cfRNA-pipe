@@ -72,6 +72,7 @@ cat reference/source/cms_095047.txt | awk 'BEGIN{FS="\t"}{print ">"$1"|"$2"\n"$5
 
 ```bash
 wget -P reference/source http://srv00.recas.ba.infn.it/webshare/ATLAS/donwload/TABLE1_hg38.txt.gz
+zcat reference/source/TABLE1_hg38.txt.gz | awk 'BEGIN{FS="\t";OFS="\t";}NR>1{print $1,$2;}' > reference/editing-sites/REDIportal.txt
 ```
 
 
