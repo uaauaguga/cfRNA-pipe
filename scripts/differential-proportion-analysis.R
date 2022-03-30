@@ -18,7 +18,7 @@ parser$add_argument('--control-label', type='character', required=TRUE,
     help = 'label of control group.')
 parser$add_argument('--test', type='character', default="betabinomial",
     choices=c('binomial', 'quasibinomial','betabinomial'),
-    help='differential expression method to use')
+    help='statistical testing method to use')
 parser$add_argument('--correction', type='character', default="BH",
     choices=c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY"),
     help='method for mutiple test correction')
